@@ -1,11 +1,12 @@
-use egui::{Frame, vec2, Rect, emath, Pos2, pos2, Shape, Stroke, Ui};
+mod drum_sequencer;
+pub use drum_sequencer::DrumSequencer;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 
 pub struct CrustaceanStationApp {
-    // Example stuff: I.e the app state 
+    // Example stuff: I.e the app state
     label: String,
 
     // this how you opt-out of serialization of a member
@@ -48,22 +49,15 @@ impl eframe::App for CrustaceanStationApp {
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let Self { label, value } = self;
-
-        // Examples of how to create different panels and windows.
-        // Pick whichever suits you.
-        // Tip: a good default choice is to just keep the `CentralPanel`.
-        // For inspiration and more examples, go to https://emilk.github.io/egui
-
+        egui::Window::new("Drum Sequencer").show(ctx, |ui| {
+            DrumSequencer::draw(ui);
+        });
 
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
             ui.heading("Crustacean STATION");
-            
             ui.hyperlink("https://media.tenor.com/oB3o62J9hjkAAAAC/dancing-ferris.gif");
             egui::warn_if_debug_build(ui);
         });
-
-        // DrumSequencer::show(ctx,|ui|);
     }
 }
