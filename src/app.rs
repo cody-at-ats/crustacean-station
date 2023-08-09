@@ -4,7 +4,7 @@ use async_std::task;
 pub use drum_sequencer::DrumSequencer;
 use log::info;
 
-use crate::app::sample_import::play_wav;
+use crate::app::sample_import::{play_wav, play_wav_from_assets};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -74,14 +74,11 @@ impl eframe::App for CrustaceanStationApp {
             egui::warn_if_debug_build(ui);
 
             if ui
-                .button("Import Sample")
-                .on_hover_text("Click to import a drum sample")
+                .button("Play bass drum sample")
+                .on_hover_text("Click to play the sample")
                 .clicked()
             {
-                // *label = "Button pressed".to_owned();
-                info!("Clicked the import button.");
-
-                play_wav();
+                play_wav_from_assets();
             }
         });
     }
