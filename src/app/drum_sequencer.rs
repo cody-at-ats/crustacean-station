@@ -114,7 +114,7 @@ impl DrumSequencer {
                 let mut cnt = 0;
                 for _ in 0..bars {
                     for _ in 0..beats {
-                        ui.checkbox(&mut segments[cnt].hi_hat_open, "");
+                        ui.checkbox(&mut segments[cnt].floor_tom, "");
                         cnt += 1;
                     }
                     ui.label("|");
