@@ -1,4 +1,5 @@
 mod drum_sequencer;
+
 pub use drum_sequencer::DrumSequencer;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -12,6 +13,9 @@ pub struct CrustaceanStationApp {
     // this how you opt-out of serialization of a member
     #[serde(skip)]
     value: f32,
+
+    #[serde(skip)]
+    drum_sequencer: DrumSequencer,
 }
 
 impl Default for CrustaceanStationApp {
@@ -20,6 +24,7 @@ impl Default for CrustaceanStationApp {
             // Example stuff:
             label: "Hello World!".to_owned(),
             value: 2.7,
+            drum_sequencer: DrumSequencer::new(),
         }
     }
 }
@@ -49,9 +54,14 @@ impl eframe::App for CrustaceanStationApp {
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::Window::new("Drum Sequencer").show(ctx, |ui| {
-            DrumSequencer::draw(ui);
-        });
+        let Self {
+            label,
+            value,
+            drum_sequencer,
+        } = self;
+
+        egui::Window::new("Drum Sequencer")
+            .show(ctx, |ui| DrumSequencer::draw(&mut self.drum_sequencer, ui));
 
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
