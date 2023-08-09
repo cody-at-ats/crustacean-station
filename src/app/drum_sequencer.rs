@@ -1,7 +1,8 @@
-use egui::{FontId, Label, RichText};
+use core::panic;
 
 pub struct DrumSequencer {
     segments: Vec<DrumSegment>,
+    active_segment: usize,
 }
 
 pub struct DrumSegment {
@@ -16,7 +17,10 @@ pub struct DrumSegment {
 
 impl Default for DrumSequencer {
     fn default() -> Self {
-        Self { segments: vec![] }
+        Self {
+            segments: vec![],
+            active_segment: 0,
+        }
     }
 }
 
@@ -25,8 +29,20 @@ impl DrumSequencer {
         Default::default()
     }
 
+    pub fn get_slice(&mut self, iteration: usize) -> &DrumSegment {
+        if iteration < self.segments.len() {
+            self.active_segment = iteration;
+            &self.segments[iteration]
+        } else {
+            panic!("NO")
+        }
+    }
+
     pub fn draw(&mut self, ui: &mut egui::Ui) {
-        let Self { segments } = self;
+        let Self {
+            segments,
+            active_segment,
+        } = self;
         const beats: u32 = 4;
         const bars: u32 = 4;
 
@@ -83,6 +99,18 @@ impl DrumSequencer {
 
             ui.horizontal(|ui| {
                 ui.label("Hi Hat Open");
+                let mut cnt = 0;
+                for _ in 0..bars {
+                    for _ in 0..beats {
+                        ui.checkbox(&mut segments[cnt].hi_hat_open, "");
+                        cnt += 1;
+                    }
+                    ui.label("|");
+                }
+            });
+
+            ui.horizontal(|ui| {
+                ui.label("Floor Tom");
                 let mut cnt = 0;
                 for _ in 0..bars {
                     for _ in 0..beats {
