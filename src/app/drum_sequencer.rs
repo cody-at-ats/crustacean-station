@@ -38,25 +38,14 @@ impl DrumSequencer {
         }
     }
 
-    // pub fn layout_drum_row(label: &str, segmentProp: &mut bool, ui: &mut egui::Ui) {
-    //     ui.horizontal(|ui| {
-    //         ui.label(segmentProp);
-    //         let mut cnt = 0;
-    //         for _ in 0..bars {
-    //             for _ in 0..beats {
-    //                 ui.checkbox(ui, "");
-    //                 cnt += 1;
-    //             }
-    //             ui.label("|");
-    //         }
-    //     });
-    // }
-
     pub fn draw(&mut self, ui: &mut egui::Ui) {
         let Self {
             segments,
-            active_segment: _,
+            active_segment,
         } = self;
+
+        let active_index: usize = active_segment.clone();
+
         const beats: u32 = 4;
         const bars: u32 = 4;
 
@@ -75,26 +64,24 @@ impl DrumSequencer {
         }
 
         ui.vertical(|ui| {
-            const kick_label: &str = "Kick----------";
-            const snare_label: &str = "Snare---------";
-            const hi_hat_closed_label: &str = "Hi Hat Closed-";
-            const hi_hat_open_label: &str = "Hi Hat Open---";
-            const floor_tom_label: &str = "Floor Tom-----";
-            const ride_label: &str = "Ride----------";
-
-            // self::layout_drum_row("Kickz", &mut segments[0].kick, ui);
-            // self::layout_drum_row("Snare", &mut segments[0].snare, ui);
-            // self::layout_drum_row("Hi Hat Closed", &mut segments[0].hi_hat_closed, ui);
-            // self::layout_drum_row("Hi Hat Open", &mut segments[0].hi_hat_open, ui);
-            // self::layout_drum_row("Floor Tom", &mut segments[0].floor_tom, ui);
+            const KICK_LABEL: &str = "Kick----------";
+            const SNARE_LABEL: &str = "Snare---------";
+            const HI_HAT_CLOSED_LABEL: &str = "Hi Hat Closed-";
+            const HI_HAT_OPEN_LABEL: &str = "Hi Hat Open---";
+            const FLOOR_TOM_LABEL: &str = "Floor Tom-----";
+            const RIDE_LABEL: &str = "Ride----------";
 
             ui.horizontal(|ui| {
-                ui.label(egui::RichText::new(kick_label).text_style(egui::TextStyle::Monospace));
+                ui.label(egui::RichText::new(KICK_LABEL).text_style(egui::TextStyle::Monospace));
 
                 let mut cnt = 0;
                 for _ in 0..bars {
                     for _ in 0..beats {
                         ui.checkbox(&mut segments[cnt].kick, "");
+
+                        let text = if active_index == cnt { "<" } else { " " };
+                        ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
+
                         cnt += 1;
                     }
                     ui.label("|");
@@ -102,11 +89,15 @@ impl DrumSequencer {
             });
 
             ui.horizontal(|ui| {
-                ui.label(egui::RichText::new(snare_label).text_style(egui::TextStyle::Monospace));
+                ui.label(egui::RichText::new(SNARE_LABEL).text_style(egui::TextStyle::Monospace));
                 let mut cnt = 0;
                 for _ in 0..bars {
                     for _ in 0..beats {
                         ui.checkbox(&mut segments[cnt].snare, "");
+
+                        let text = if active_index == cnt { "<" } else { " " };
+                        ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
+
                         cnt += 1;
                     }
                     ui.label("|");
@@ -115,12 +106,16 @@ impl DrumSequencer {
 
             ui.horizontal(|ui| {
                 ui.label(
-                    egui::RichText::new(hi_hat_closed_label).text_style(egui::TextStyle::Monospace),
+                    egui::RichText::new(HI_HAT_CLOSED_LABEL).text_style(egui::TextStyle::Monospace),
                 );
                 let mut cnt = 0;
                 for _ in 0..bars {
                     for _ in 0..beats {
                         ui.checkbox(&mut segments[cnt].hi_hat_closed, "");
+
+                        let text = if active_index == cnt { "<" } else { " " };
+                        ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
+
                         cnt += 1;
                     }
                     ui.label("|");
@@ -129,12 +124,16 @@ impl DrumSequencer {
 
             ui.horizontal(|ui| {
                 ui.label(
-                    egui::RichText::new(hi_hat_open_label).text_style(egui::TextStyle::Monospace),
+                    egui::RichText::new(HI_HAT_OPEN_LABEL).text_style(egui::TextStyle::Monospace),
                 );
                 let mut cnt = 0;
                 for _ in 0..bars {
                     for _ in 0..beats {
                         ui.checkbox(&mut segments[cnt].hi_hat_open, "");
+
+                        let text = if active_index == cnt { "<" } else { " " };
+                        ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
+
                         cnt += 1;
                     }
                     ui.label("|");
@@ -143,16 +142,33 @@ impl DrumSequencer {
 
             ui.horizontal(|ui| {
                 ui.label(
-                    egui::RichText::new(floor_tom_label).text_style(egui::TextStyle::Monospace),
+                    egui::RichText::new(FLOOR_TOM_LABEL).text_style(egui::TextStyle::Monospace),
                 );
                 let mut cnt = 0;
                 for _ in 0..bars {
                     for _ in 0..beats {
                         ui.checkbox(&mut segments[cnt].floor_tom, "");
+
+                        let text = if active_index == cnt { "<" } else { " " };
+                        ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
+
                         cnt += 1;
                     }
                     ui.label("|");
                 }
+            });
+
+            ui.horizontal(|ui| {
+                if ui.button("<").clicked() {
+                    if active_index > 0 {
+                        *active_segment -= 1;
+                    }
+                }
+                if ui.button(">").clicked() {
+                    if active_index < segments.len() - 1 {
+                        *active_segment += 1;
+                    }
+                };
             });
         });
     }
