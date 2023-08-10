@@ -1,8 +1,8 @@
 mod drum_sequencer;
 mod sample_import;
-use async_std::task;
+
 pub use drum_sequencer::DrumSequencer;
-use log::info;
+
 
 mod central_panel;
 use central_panel::show_central_panel;
@@ -60,9 +60,9 @@ impl eframe::App for CrustaceanStationApp {
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let Self {
-            label,
-            value,
-            drum_sequencer,
+            label: _,
+            value: _,
+            drum_sequencer: _,
         } = self;
 
         egui::Window::new("Drum Sequencer")

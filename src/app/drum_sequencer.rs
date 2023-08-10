@@ -41,7 +41,7 @@ impl DrumSequencer {
     pub fn draw(&mut self, ui: &mut egui::Ui) {
         let Self {
             segments,
-            active_segment,
+            active_segment: _,
         } = self;
         const beats: u32 = 4;
         const bars: u32 = 4;
