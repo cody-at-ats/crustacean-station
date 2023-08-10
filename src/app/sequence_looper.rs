@@ -1,7 +1,10 @@
+use async_std::stream::StreamExt;
 use futures::executor::block_on;
+
 use futures::Future;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+
 use std::time::Duration;
 use wasm_bindgen_futures::spawn_local;
 use wasm_timer::Delay;
@@ -12,24 +15,25 @@ use crate::{app::drum_sequencer::DrumSegment, play_wav_from_assets};
 use super::{drum_sequencer, DrumSequencer};
 
 pub fn run_drum_segment(drum_segment: &DrumSegment) {
+    play_wav_from_assets!(play_bass_drum, "../../assets/Bass-Drum-2.wav");
+    play_wav_from_assets!(play_snare_drum, "../../assets/Hip-Hop-Snare-1.wav");
+    play_wav_from_assets!(play_closed_hat, "../../assets/Closed-Hi-Hat-1.wav");
+    play_wav_from_assets!(play_open_hat, "../../assets/Open-Hi-Hat-1.wav");
+    play_wav_from_assets!(play_floor_tom, "../../assets/Floor-Tom-1.wav");
+
     if drum_segment.kick == true {
-        play_wav_from_assets!(play_bass_drum, "../../assets/Bass-Drum-2.wav");
         play_bass_drum();
     }
     if drum_segment.snare == true {
-        play_wav_from_assets!(play_snare_drum, "../../assets/Hip-Hop-Snare-1.wav");
         play_snare_drum();
     }
     if drum_segment.hi_hat_closed == true {
-        play_wav_from_assets!(play_closed_hat, "../../assets/Closed-Hi-Hat-1.wav");
         play_closed_hat();
     }
     if drum_segment.hi_hat_open == true {
-        play_wav_from_assets!(play_open_hat, "../../assets/Open-Hi-Hat-1.wav");
         play_open_hat();
     }
     if drum_segment.floor_tom == true {
-        play_wav_from_assets!(play_floor_tom, "../../assets/Floor-Tom-1.wav");
         play_floor_tom();
     }
 }
@@ -47,22 +51,18 @@ pub fn run_drum_segment(drum_segment: &DrumSegment) {
 // playing is stopped.
 pub fn start_looping_sequence(
     should_stop: Arc<AtomicBool>,
-    receiver: &mut futures_channel::mpsc::Receiver<Vec<DrumSegment>>,
+    sequence: &mut Arc<Mutex<Vec<DrumSegment>>>,
 ) -> () {
+    let sequence_clone = sequence.clone();
+
     spawn_local(async move {
         loop {
-            let rx_result = receiver.try_next().unwrap();
-
-            if Option::is_some(&rx_result) {
-                let sequence = rx_result.clone().unwrap();
-                if should_stop.load(Ordering::SeqCst) {
-                    break;
-                }
-                for i in 0..sequence.len() {
-                    run_drum_segment(&sequence[i]);
-
-                    let _ = Delay::new(Duration::from_millis(200)).await;
-                }
+            if should_stop.load(Ordering::SeqCst) {
+                break;
+            }
+            for segment in sequence_clone.lock().unwrap().iter() {
+                run_drum_segment(&segment);
+                let _ = Delay::new(Duration::from_millis(200)).await;
             }
         }
     });

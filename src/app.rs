@@ -3,9 +3,10 @@ mod sample_import;
 mod sequence_looper;
 
 use futures::executor::block_on;
-use futures::lock::Mutex;
+
+use futures::StreamExt;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 pub use drum_sequencer::DrumSequencer;
 
@@ -31,16 +32,21 @@ pub struct CrustaceanStationApp {
     drum_sequencer: DrumSequencer,
 
     #[serde(skip)]
+    drum_segments: Arc<Mutex<Vec<DrumSegment>>>,
+
+    #[serde(skip)]
     is_playing: Arc<AtomicBool>,
     // #[serde(skip)]
     // sequence_handle: Future<Output = ()>,
     #[serde(skip)]
     should_stop: Arc<AtomicBool>,
     #[serde(skip)]
-    channel: (
-        futures_channel::mpsc::Sender<Vec<DrumSegment>>,
-        futures_channel::mpsc::Receiver<Vec<DrumSegment>>,
-    ),
+    channel: Channel,
+}
+
+pub struct Channel {
+    sender: futures_channel::mpsc::Sender<Vec<DrumSegment>>,
+    receiver: futures_channel::mpsc::Receiver<Vec<DrumSegment>>,
 }
 
 impl Default for CrustaceanStationApp {
@@ -50,9 +56,13 @@ impl Default for CrustaceanStationApp {
             label: "Hello World!".to_owned(),
             value: 2.7,
             drum_sequencer: DrumSequencer::new(),
+            drum_segments: Arc::new(Mutex::new(vec![])),
             is_playing: Arc::new(AtomicBool::new(false)),
             should_stop: Arc::new(AtomicBool::new(false)),
-            channel: futures_channel::mpsc::channel(999),
+            channel: Channel {
+                sender: futures_channel::mpsc::channel(999).0,
+                receiver: futures_channel::mpsc::channel(999).1,
+            },
         }
     }
 }
@@ -86,6 +96,7 @@ impl eframe::App for CrustaceanStationApp {
             label: _,
             value: _,
             drum_sequencer,
+            drum_segments,
             is_playing,
             should_stop,
             channel,
@@ -93,8 +104,8 @@ impl eframe::App for CrustaceanStationApp {
 
         egui::Window::new("Drum Sequencer").show(ctx, |ui| DrumSequencer::draw(drum_sequencer, ui));
 
-        let (tx, rx) = channel;
-        tx.start_send(drum_sequencer.segments.clone());
+        *drum_segments.lock().unwrap() = drum_sequencer.segments.clone();
+        channel.sender.start_send(drum_sequencer.segments.clone());
 
         // loads the central panel that contains all the backgroung UI
         show_central_panel(ctx);
@@ -115,7 +126,7 @@ impl eframe::App for CrustaceanStationApp {
         if play_clicked {
             is_playing.store(true, Ordering::SeqCst);
             should_stop.store(false, Ordering::SeqCst);
-            start_looping_sequence(should_stop.clone(), rx);
+            start_looping_sequence(should_stop.clone(), drum_segments);
         }
 
         if stop_clicked {
