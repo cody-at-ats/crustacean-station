@@ -54,10 +54,15 @@ pub fn start_looping_sequence(
     should_stop: Arc<AtomicBool>,
     sequence: &mut Arc<Mutex<Vec<DrumSegment>>>,
     sequence_running: Arc<AtomicBool>,
+    bpm: &mut u32,
 ) -> () {
-    info!("Called start_looping_sequence!!");
-
     let sequence_clone = sequence.clone();
+    let bpm_copy = bpm.clone();
+
+    // convert the bpm value to a millisecond
+    // value that represents the amount of time between
+    // each beat.
+    let bpm_in_millis = 60000 / bpm_copy;
 
     spawn_local(async move {
         loop {
@@ -71,7 +76,6 @@ pub fn start_looping_sequence(
                 sequence_copy = full_sequence.clone();
             }
 
-            info!("Length of sequence: {}", sequence_copy.len());
             for segment in sequence_copy.iter() {
                 spawn_local({
                     let segment = segment.clone();
@@ -81,7 +85,7 @@ pub fn start_looping_sequence(
                 });
 
                 // run_drum_segment(&segment);
-                let _ = async_std::task::sleep(Duration::from_millis(100)).await;
+                let _ = async_std::task::sleep(Duration::from_millis(bpm_in_millis as u64)).await;
             }
         }
         sequence_running.store(false, Ordering::SeqCst);

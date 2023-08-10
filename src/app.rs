@@ -2,6 +2,7 @@ mod drum_sequencer;
 mod sample_import;
 mod sequence_looper;
 
+use egui::Slider;
 use futures::executor::block_on;
 
 use futures::StreamExt;
@@ -49,6 +50,8 @@ pub struct CrustaceanStationApp {
 
     #[serde(skip)]
     last_update: Instant,
+
+    bpm: u32,
 }
 
 impl Default for CrustaceanStationApp {
@@ -63,6 +66,7 @@ impl Default for CrustaceanStationApp {
             should_stop: Arc::new(AtomicBool::new(false)),
             sequence_running: Arc::new(AtomicBool::new(false)),
             last_update: Instant::now(),
+            bpm: 100,
         }
     }
 }
@@ -101,6 +105,7 @@ impl eframe::App for CrustaceanStationApp {
             should_stop,
             sequence_running,
             last_update,
+            bpm,
         } = self;
 
         egui::Window::new("Drum Sequencer").show(ctx, |ui| DrumSequencer::draw(drum_sequencer, ui));
@@ -108,7 +113,6 @@ impl eframe::App for CrustaceanStationApp {
         // Only update the drum segments if at least 100ms have passed since the last update
         if last_update.elapsed() >= Duration::from_millis(100) {
             if let Ok(mut drum_segments) = drum_segments.try_lock() {
-                info!("Updating drum segments");
                 *drum_segments = drum_sequencer.segments.clone();
                 *last_update = Instant::now();
             }
@@ -120,7 +124,7 @@ impl eframe::App for CrustaceanStationApp {
         let mut play_clicked = false;
         let mut stop_clicked = false;
 
-        egui::Window::new("Play Buttons").show(ctx, |ui| {
+        egui::Window::new("Control Buttons").show(ctx, |ui| {
             if ui.button("PLAY LOOP!").clicked() {
                 play_clicked = true;
             }
@@ -129,11 +133,27 @@ impl eframe::App for CrustaceanStationApp {
                 stop_clicked = true;
             }
 
+            ui.add(
+                Slider::new(bpm, 40..=500)
+                    .logarithmic(false)
+                    .clamp_to_range(true)
+                    .smart_aim(true)
+                    .orientation(egui::SliderOrientation::Horizontal)
+                    .text("BPM Control")
+                    .step_by(1.0)
+                    .trailing_fill(false),
+            );
+
             if play_clicked && !sequence_running.load(Ordering::SeqCst) {
                 is_playing.store(true, Ordering::SeqCst);
                 should_stop.store(false, Ordering::SeqCst);
                 let sequence_running_clone = sequence_running.clone();
-                start_looping_sequence(should_stop.clone(), drum_segments, sequence_running_clone);
+                start_looping_sequence(
+                    should_stop.clone(),
+                    drum_segments,
+                    sequence_running_clone,
+                    bpm,
+                );
             }
 
             if stop_clicked {
