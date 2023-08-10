@@ -9,6 +9,8 @@ use wasm_timer::Delay;
 use crate::app::sample_import::play_wav_from_base64_string;
 use crate::{app::drum_sequencer::DrumSegment, play_wav_from_assets};
 
+use super::{drum_sequencer, DrumSequencer};
+
 pub fn run_drum_segment(drum_segment: &DrumSegment) {
     if drum_segment.kick == true {
         play_wav_from_assets!(play_bass_drum, "../../assets/Bass-Drum-2.wav");
@@ -43,15 +45,19 @@ pub fn run_drum_segment(drum_segment: &DrumSegment) {
 // The thread should sleep for 1 second between each iteration.
 // The returned handle should be used to join the thread in the main thread when
 // playing is stopped.
-pub fn start_looping_sequence(sequence: Vec<DrumSegment>, should_stop: Arc<AtomicBool>) -> () {
+pub fn start_looping_sequence(
+    mut drum_sequencer: DrumSequencer,
+    should_stop: Arc<AtomicBool>,
+) -> () {
     spawn_local(async move {
         loop {
             if should_stop.load(Ordering::SeqCst) {
                 break;
             }
-            for segment in sequence.iter() {
-                run_drum_segment(segment);
-                Delay::new(Duration::from_millis(200)).await;
+            for i in 0..16 {
+                run_drum_segment(drum_sequencer.get_slice(i));
+
+                let _ = Delay::new(Duration::from_millis(200)).await;
             }
         }
     });

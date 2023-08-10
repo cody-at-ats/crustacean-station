@@ -105,7 +105,7 @@ impl eframe::App for CrustaceanStationApp {
         if play_clicked {
             is_playing.store(true, Ordering::SeqCst);
             should_stop.store(false, Ordering::SeqCst);
-            start_looping_sequence(self.drum_sequencer.segments.clone(), should_stop.clone());
+            start_looping_sequence(drum_sequencer.to_owned(), should_stop.clone());
         }
 
         if stop_clicked {
