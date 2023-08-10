@@ -48,11 +48,11 @@ impl DrumSequencer {
 
         let active_index: usize = active_segment.clone();
 
-        const beats: u32 = 4;
-        const bars: u32 = 4;
+        const BEATS: u32 = 4;
+        const BARS: u32 = 4;
 
         if segments.len() == 0 {
-            for i in 0..beats * bars {
+            for i in 0..BEATS * BARS {
                 segments.push(DrumSegment {
                     beat: (i),
                     kick: (false),
@@ -71,17 +71,16 @@ impl DrumSequencer {
             const HI_HAT_CLOSED_LABEL: &str = "Hi Hat Closed-";
             const HI_HAT_OPEN_LABEL: &str = "Hi Hat Open---";
             const FLOOR_TOM_LABEL: &str = "Floor Tom-----";
-            const RIDE_LABEL: &str = "Ride----------";
 
             ui.horizontal(|ui| {
                 ui.label(egui::RichText::new(KICK_LABEL).text_style(egui::TextStyle::Monospace));
 
                 let mut cnt = 0;
-                for _ in 0..bars {
-                    for _ in 0..beats {
+                for _ in 0..BARS {
+                    for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].kick, "");
 
-                        let text = if active_index == cnt { "<" } else { " " };
+                        let text = if *active_segment == cnt { "<" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -93,11 +92,11 @@ impl DrumSequencer {
             ui.horizontal(|ui| {
                 ui.label(egui::RichText::new(SNARE_LABEL).text_style(egui::TextStyle::Monospace));
                 let mut cnt = 0;
-                for _ in 0..bars {
-                    for _ in 0..beats {
+                for _ in 0..BARS {
+                    for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].snare, "");
 
-                        let text = if active_index == cnt { "<" } else { " " };
+                        let text = if *active_segment == cnt { "<" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -111,11 +110,11 @@ impl DrumSequencer {
                     egui::RichText::new(HI_HAT_CLOSED_LABEL).text_style(egui::TextStyle::Monospace),
                 );
                 let mut cnt = 0;
-                for _ in 0..bars {
-                    for _ in 0..beats {
+                for _ in 0..BARS {
+                    for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].hi_hat_closed, "");
 
-                        let text = if active_index == cnt { "<" } else { " " };
+                        let text = if *active_segment == cnt { "<" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -129,11 +128,11 @@ impl DrumSequencer {
                     egui::RichText::new(HI_HAT_OPEN_LABEL).text_style(egui::TextStyle::Monospace),
                 );
                 let mut cnt = 0;
-                for _ in 0..bars {
-                    for _ in 0..beats {
+                for _ in 0..BARS {
+                    for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].hi_hat_open, "");
 
-                        let text = if active_index == cnt { "<" } else { " " };
+                        let text = if *active_segment == cnt { "<" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -147,11 +146,11 @@ impl DrumSequencer {
                     egui::RichText::new(FLOOR_TOM_LABEL).text_style(egui::TextStyle::Monospace),
                 );
                 let mut cnt = 0;
-                for _ in 0..bars {
-                    for _ in 0..beats {
+                for _ in 0..BARS {
+                    for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].floor_tom, "");
 
-                        let text = if active_index == cnt { "<" } else { " " };
+                        let text = if *active_segment == cnt { "<" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;

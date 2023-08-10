@@ -12,6 +12,7 @@ pub use drum_sequencer::DrumSequencer;
 mod central_panel;
 use central_panel::show_central_panel;
 
+use self::drum_sequencer::DrumSegment;
 use self::sequence_looper::start_looping_sequence;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -35,6 +36,11 @@ pub struct CrustaceanStationApp {
     // sequence_handle: Future<Output = ()>,
     #[serde(skip)]
     should_stop: Arc<AtomicBool>,
+    #[serde(skip)]
+    channel: (
+        futures_channel::mpsc::Sender<Vec<DrumSegment>>,
+        futures_channel::mpsc::Receiver<Vec<DrumSegment>>,
+    ),
 }
 
 impl Default for CrustaceanStationApp {
@@ -46,7 +52,7 @@ impl Default for CrustaceanStationApp {
             drum_sequencer: DrumSequencer::new(),
             is_playing: Arc::new(AtomicBool::new(false)),
             should_stop: Arc::new(AtomicBool::new(false)),
-            // sequence_handle: None,
+            channel: futures_channel::mpsc::channel(999),
         }
     }
 }
@@ -82,9 +88,13 @@ impl eframe::App for CrustaceanStationApp {
             drum_sequencer,
             is_playing,
             should_stop,
+            channel,
         } = self;
 
         egui::Window::new("Drum Sequencer").show(ctx, |ui| DrumSequencer::draw(drum_sequencer, ui));
+
+        let (tx, rx) = channel;
+        tx.start_send(drum_sequencer.segments.clone());
 
         // loads the central panel that contains all the backgroung UI
         show_central_panel(ctx);
@@ -105,7 +115,7 @@ impl eframe::App for CrustaceanStationApp {
         if play_clicked {
             is_playing.store(true, Ordering::SeqCst);
             should_stop.store(false, Ordering::SeqCst);
-            start_looping_sequence(drum_sequencer.to_owned(), should_stop.clone());
+            start_looping_sequence(should_stop.clone(), rx);
         }
 
         if stop_clicked {

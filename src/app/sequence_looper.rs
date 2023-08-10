@@ -46,18 +46,23 @@ pub fn run_drum_segment(drum_segment: &DrumSegment) {
 // The returned handle should be used to join the thread in the main thread when
 // playing is stopped.
 pub fn start_looping_sequence(
-    mut drum_sequencer: DrumSequencer,
     should_stop: Arc<AtomicBool>,
+    receiver: &mut futures_channel::mpsc::Receiver<Vec<DrumSegment>>,
 ) -> () {
     spawn_local(async move {
         loop {
-            if should_stop.load(Ordering::SeqCst) {
-                break;
-            }
-            for i in 0..16 {
-                run_drum_segment(drum_sequencer.get_slice(i));
+            let rx_result = receiver.try_next().unwrap();
 
-                let _ = Delay::new(Duration::from_millis(200)).await;
+            if Option::is_some(&rx_result) {
+                let sequence = rx_result.clone().unwrap();
+                if should_stop.load(Ordering::SeqCst) {
+                    break;
+                }
+                for i in 0..sequence.len() {
+                    run_drum_segment(&sequence[i]);
+
+                    let _ = Delay::new(Duration::from_millis(200)).await;
+                }
             }
         }
     });
