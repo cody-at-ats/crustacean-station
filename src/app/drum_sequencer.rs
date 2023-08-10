@@ -1,18 +1,20 @@
 use core::panic;
 
+#[derive(Clone)]
 pub struct DrumSequencer {
-    segments: Vec<DrumSegment>,
+    pub segments: Vec<DrumSegment>,
     active_segment: usize,
 }
 
+#[derive(Copy, Clone)]
 pub struct DrumSegment {
     beat: u32,
-    kick: bool,
-    snare: bool,
-    hi_hat_closed: bool,
-    hi_hat_open: bool,
-    floor_tom: bool,
-    ride: bool,
+    pub kick: bool,
+    pub snare: bool,
+    pub hi_hat_closed: bool,
+    pub hi_hat_open: bool,
+    pub floor_tom: bool,
+    pub ride: bool,
 }
 
 impl Default for DrumSequencer {

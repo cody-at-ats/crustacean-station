@@ -1,11 +1,18 @@
 mod drum_sequencer;
 mod sample_import;
+mod sequence_looper;
+
+use futures::executor::block_on;
+use futures::lock::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 pub use drum_sequencer::DrumSequencer;
 
-
 mod central_panel;
 use central_panel::show_central_panel;
+
+use self::sequence_looper::start_looping_sequence;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -21,6 +28,13 @@ pub struct CrustaceanStationApp {
 
     #[serde(skip)]
     drum_sequencer: DrumSequencer,
+
+    #[serde(skip)]
+    is_playing: Arc<AtomicBool>,
+    // #[serde(skip)]
+    // sequence_handle: Future<Output = ()>,
+    #[serde(skip)]
+    should_stop: Arc<AtomicBool>,
 }
 
 impl Default for CrustaceanStationApp {
@@ -30,6 +44,9 @@ impl Default for CrustaceanStationApp {
             label: "Hello World!".to_owned(),
             value: 2.7,
             drum_sequencer: DrumSequencer::new(),
+            is_playing: Arc::new(AtomicBool::new(false)),
+            should_stop: Arc::new(AtomicBool::new(false)),
+            // sequence_handle: None,
         }
     }
 }
@@ -62,13 +79,47 @@ impl eframe::App for CrustaceanStationApp {
         let Self {
             label: _,
             value: _,
-            drum_sequencer: _,
+            drum_sequencer,
+            is_playing,
+            should_stop,
         } = self;
 
-        egui::Window::new("Drum Sequencer")
-            .show(ctx, |ui| DrumSequencer::draw(&mut self.drum_sequencer, ui));
+        egui::Window::new("Drum Sequencer").show(ctx, |ui| DrumSequencer::draw(drum_sequencer, ui));
 
         // loads the central panel that contains all the backgroung UI
         show_central_panel(ctx);
+
+        let mut play_clicked = false;
+        let mut stop_clicked = false;
+
+        egui::Window::new("Play Buttons").show(ctx, |ui| {
+            if ui.button("PLAY LOOP!").clicked() {
+                play_clicked = true;
+            }
+
+            if ui.button("STOP LOOP").clicked() {
+                stop_clicked = true;
+            }
+        });
+
+        if play_clicked {
+            is_playing.store(true, Ordering::SeqCst);
+            should_stop.store(false, Ordering::SeqCst);
+            start_looping_sequence(self.drum_sequencer.segments.clone(), should_stop.clone());
+        }
+
+        if stop_clicked {
+            is_playing.store(false, Ordering::SeqCst);
+            should_stop.store(true, Ordering::SeqCst);
+        }
+
+        // if *block_on(self.is_playing.lock()) && self.sequence_handle.is_none() {
+        //     self.sequence_handle =
+        //         Box::<start_looping_sequence>(self.drum_sequencer.segments.clone());
+        // } else if !*block_on(self.is_playing.lock()) {
+        //     if let Some(handle) = self.sequence_handle.take() {
+        //         handle.join();
+        //     }
+        // }
     }
 }

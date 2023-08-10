@@ -23,6 +23,10 @@ wasm-bindgen = "0.2.87"
 web-sys = { verion = "0.3.54", features = ['Blob', 'BlobPropertyBag'] }
 js-sys = "0.3.54"
 base64 = "0.21.2"
+futures = "0.3.17"
+wasm-timer = "0.2.0"
+wasm-bindgen-futures = "0.4.25"
+
 
 # You only need serde if you want app persistence:
 serde = { version = "1", features = ["derive"] }
@@ -37,8 +41,7 @@ wasm-bindgen-cli = "0.2.87"
 env_logger = "0.10"
 
 # web:
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen-futures = "0.4.25"
+# [target.'cfg(target_arch = "wasm32")'.dependencies]
 
 
 [profile.release]
