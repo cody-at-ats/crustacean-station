@@ -81,7 +81,7 @@ pub fn start_looping_sequence(
                 });
 
                 // run_drum_segment(&segment);
-                let _ = Delay::new(Duration::from_millis(200)).await;
+                let _ = async_std::task::sleep(Duration::from_millis(100)).await;
             }
         }
         sequence_running.store(false, Ordering::SeqCst);
