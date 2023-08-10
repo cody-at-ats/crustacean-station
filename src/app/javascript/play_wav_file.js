@@ -62,3 +62,5 @@ export async function playWavFileFromAssets(relativePath) {
     // Pass the Blob to the playWavFile function
     playWavFile(blob);
 }
+
+export default { playWavFile, play_wav_from_base64_string, selectAndPlayWavFile, playWavFileFromAssets };

@@ -4,7 +4,8 @@ use async_std::task;
 pub use drum_sequencer::DrumSequencer;
 use log::info;
 
-use crate::app::sample_import::{play_wav, play_wav_from_assets};
+mod central_panel;
+use central_panel::show_central_panel;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -67,19 +68,7 @@ impl eframe::App for CrustaceanStationApp {
         egui::Window::new("Drum Sequencer")
             .show(ctx, |ui| DrumSequencer::draw(&mut self.drum_sequencer, ui));
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            // The central panel the region left after adding TopPanel's and SidePanel's
-            ui.heading("Crustacean STATION");
-            ui.hyperlink("https://media.tenor.com/oB3o62J9hjkAAAAC/dancing-ferris.gif");
-            egui::warn_if_debug_build(ui);
-
-            if ui
-                .button("Play bass drum sample")
-                .on_hover_text("Click to play the sample")
-                .clicked()
-            {
-                play_wav_from_assets();
-            }
-        });
+        // loads the central panel that contains all the backgroung UI
+        show_central_panel(ctx);
     }
 }
