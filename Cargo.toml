@@ -26,7 +26,7 @@ base64 = "0.21.2"
 futures = "0.3.17"
 wasm-timer = "0.2.0"
 wasm-bindgen-futures = "0.4.25"
-
+futures-channel = "0.3"
 
 # You only need serde if you want app persistence:
 serde = { version = "1", features = ["derive"] }
