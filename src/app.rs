@@ -5,8 +5,11 @@ mod sequence_looper;
 use futures::executor::block_on;
 
 use futures::StreamExt;
+use log::info;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use wasm_timer::Instant;
 
 pub use drum_sequencer::DrumSequencer;
 
@@ -40,13 +43,12 @@ pub struct CrustaceanStationApp {
     // sequence_handle: Future<Output = ()>,
     #[serde(skip)]
     should_stop: Arc<AtomicBool>,
-    #[serde(skip)]
-    channel: Channel,
-}
 
-pub struct Channel {
-    sender: futures_channel::mpsc::Sender<Vec<DrumSegment>>,
-    receiver: futures_channel::mpsc::Receiver<Vec<DrumSegment>>,
+    #[serde(skip)]
+    sequence_running: Arc<AtomicBool>,
+
+    #[serde(skip)]
+    last_update: Instant,
 }
 
 impl Default for CrustaceanStationApp {
@@ -59,10 +61,8 @@ impl Default for CrustaceanStationApp {
             drum_segments: Arc::new(Mutex::new(vec![])),
             is_playing: Arc::new(AtomicBool::new(false)),
             should_stop: Arc::new(AtomicBool::new(false)),
-            channel: Channel {
-                sender: futures_channel::mpsc::channel(999).0,
-                receiver: futures_channel::mpsc::channel(999).1,
-            },
+            sequence_running: Arc::new(AtomicBool::new(false)),
+            last_update: Instant::now(),
         }
     }
 }
@@ -99,13 +99,20 @@ impl eframe::App for CrustaceanStationApp {
             drum_segments,
             is_playing,
             should_stop,
-            channel,
+            sequence_running,
+            last_update,
         } = self;
 
         egui::Window::new("Drum Sequencer").show(ctx, |ui| DrumSequencer::draw(drum_sequencer, ui));
 
-        *drum_segments.lock().unwrap() = drum_sequencer.segments.clone();
-        channel.sender.start_send(drum_sequencer.segments.clone());
+        // Only update the drum segments if at least 100ms have passed since the last update
+        if last_update.elapsed() >= Duration::from_millis(100) {
+            if let Ok(mut drum_segments) = drum_segments.try_lock() {
+                info!("Updating drum segments");
+                *drum_segments = drum_sequencer.segments.clone();
+                *last_update = Instant::now();
+            }
+        }
 
         // loads the central panel that contains all the backgroung UI
         show_central_panel(ctx);
@@ -121,26 +128,18 @@ impl eframe::App for CrustaceanStationApp {
             if ui.button("STOP LOOP").clicked() {
                 stop_clicked = true;
             }
+
+            if play_clicked && !sequence_running.load(Ordering::SeqCst) {
+                is_playing.store(true, Ordering::SeqCst);
+                should_stop.store(false, Ordering::SeqCst);
+                let sequence_running_clone = sequence_running.clone();
+                start_looping_sequence(should_stop.clone(), drum_segments, sequence_running_clone);
+            }
+
+            if stop_clicked {
+                is_playing.store(false, Ordering::SeqCst);
+                should_stop.store(true, Ordering::SeqCst);
+            }
         });
-
-        if play_clicked {
-            is_playing.store(true, Ordering::SeqCst);
-            should_stop.store(false, Ordering::SeqCst);
-            start_looping_sequence(should_stop.clone(), drum_segments);
-        }
-
-        if stop_clicked {
-            is_playing.store(false, Ordering::SeqCst);
-            should_stop.store(true, Ordering::SeqCst);
-        }
-
-        // if *block_on(self.is_playing.lock()) && self.sequence_handle.is_none() {
-        //     self.sequence_handle =
-        //         Box::<start_looping_sequence>(self.drum_sequencer.segments.clone());
-        // } else if !*block_on(self.is_playing.lock()) {
-        //     if let Some(handle) = self.sequence_handle.take() {
-        //         handle.join();
-        //     }
-        // }
     }
 }

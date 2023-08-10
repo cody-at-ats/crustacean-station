@@ -2,6 +2,7 @@ use async_std::stream::StreamExt;
 use futures::executor::block_on;
 
 use futures::Future;
+use log::info;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
@@ -52,7 +53,10 @@ pub fn run_drum_segment(drum_segment: &DrumSegment) {
 pub fn start_looping_sequence(
     should_stop: Arc<AtomicBool>,
     sequence: &mut Arc<Mutex<Vec<DrumSegment>>>,
+    sequence_running: Arc<AtomicBool>,
 ) -> () {
+    info!("Called start_looping_sequence!!");
+
     let sequence_clone = sequence.clone();
 
     spawn_local(async move {
@@ -60,10 +64,26 @@ pub fn start_looping_sequence(
             if should_stop.load(Ordering::SeqCst) {
                 break;
             }
-            for segment in sequence_clone.lock().unwrap().iter() {
-                run_drum_segment(&segment);
+
+            let sequence_copy;
+            {
+                let full_sequence = sequence_clone.lock().unwrap();
+                sequence_copy = full_sequence.clone();
+            }
+
+            info!("Length of sequence: {}", sequence_copy.len());
+            for segment in sequence_copy.iter() {
+                spawn_local({
+                    let segment = segment.clone();
+                    async move {
+                        run_drum_segment(&segment);
+                    }
+                });
+
+                // run_drum_segment(&segment);
                 let _ = Delay::new(Duration::from_millis(200)).await;
             }
         }
+        sequence_running.store(false, Ordering::SeqCst);
     });
 }
