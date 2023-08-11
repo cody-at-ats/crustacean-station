@@ -10,13 +10,9 @@ fn create_audio_button(ui: &mut egui::Ui, label: &str, play_fn: fn()) {
 pub fn show_central_panel(ctx: &egui::Context, logo: &egui::TextureHandle) {
     egui::CentralPanel::default().show(ctx, |ui| {
         // The central panel the region left after adding TopPanel's and SidePanel's
-        ui.heading("Crustacean STATION");
 
         // show our logo
         ui.image(logo, logo.size_vec2());
-
-        ui.hyperlink("https://media.tenor.com/oB3o62J9hjkAAAAC/dancing-ferris.gif");
-        egui::warn_if_debug_build(ui);
 
         play_wav_from_assets!(play_bass_drum, "../../assets/Bass-Drum-2.wav");
         play_wav_from_assets!(play_snare_drum, "../../assets/Hip-Hop-Snare-1.wav");
