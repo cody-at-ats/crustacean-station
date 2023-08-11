@@ -12,6 +12,8 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use wasm_timer::Instant;
 
+use image::GenericImageView;
+
 pub use drum_sequencer::DrumSequencer;
 
 mod central_panel;
@@ -52,6 +54,9 @@ pub struct CrustaceanStationApp {
     last_update: Instant,
 
     bpm: Arc<Mutex<u32>>,
+
+    #[serde(skip)]
+    logo_image: Option<egui::TextureHandle>,
 }
 
 impl Default for CrustaceanStationApp {
@@ -67,6 +72,7 @@ impl Default for CrustaceanStationApp {
             sequence_running: Arc::new(AtomicBool::new(false)),
             last_update: Instant::now(),
             bpm: Arc::new(Mutex::new(110)),
+            logo_image: None,
         }
     }
 }
@@ -79,11 +85,30 @@ impl CrustaceanStationApp {
 
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
-        if let Some(storage) = cc.storage {
-            return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
-        }
+        let mut app: CrustaceanStationApp = if let Some(storage) = cc.storage {
+            eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default()
+        } else {
+            Default::default()
+        };
 
-        Default::default()
+        // Include the image data as a byte array
+        let logo_image_data: &[u8] = include_bytes!("../assets/crust_logo.png");
+
+        // Decode the image data
+        let logo_image = image::load_from_memory(logo_image_data).unwrap();
+        let size = [logo_image.width() as _, logo_image.height() as _];
+        let image_buffer = logo_image.to_rgba8();
+        let pixels = image_buffer.as_flat_samples();
+        let actual_image = egui::ColorImage::from_rgba_unmultiplied(size, pixels.as_slice());
+
+        // Set the image texture
+        app.logo_image = Some(cc.egui_ctx.load_texture(
+            "crust_logo",
+            actual_image,
+            Default::default(),
+        ));
+
+        app
     }
 }
 
@@ -106,6 +131,7 @@ impl eframe::App for CrustaceanStationApp {
             sequence_running,
             last_update,
             bpm,
+            logo_image,
         } = self;
 
         egui::Window::new("Drum Sequencer").show(ctx, |ui| DrumSequencer::draw(drum_sequencer, ui));
@@ -119,7 +145,7 @@ impl eframe::App for CrustaceanStationApp {
         }
 
         // loads the central panel that contains all the backgroung UI
-        show_central_panel(ctx);
+        show_central_panel(ctx, &logo_image.as_ref().unwrap());
 
         let mut play_clicked = false;
         let mut stop_clicked = false;
