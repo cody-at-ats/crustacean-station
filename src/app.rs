@@ -18,6 +18,7 @@ pub use drum_sequencer::DrumSequencer;
 mod central_panel;
 use central_panel::show_central_panel;
 
+mod sample_buttons;
 mod scope;
 mod top_bar;
 
@@ -154,6 +155,7 @@ impl eframe::App for CrustaceanStationApp {
 
         show_scope(ctx, bpm.clone());
 
+        sample_buttons::show_sample_buttons(ctx);
         let mut play_clicked = false;
         let mut stop_clicked = false;
 

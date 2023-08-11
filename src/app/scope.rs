@@ -26,7 +26,7 @@ pub fn show_scope(ctx: &egui::Context, bpm: Arc<Mutex<u32>>) {
             for &mode in &[2, 3, 5] {
                 let mode = mode as f64;
                 let n = 360;
-                let speed = f64::from(*bpm_clone.lock().unwrap()) / 12.0;
+                let speed = f64::from(*bpm_clone.lock().unwrap()) / 60.0;
                 // how to i turn bpm_clone into f64?
 
                 let points: Vec<Pos2> = (0..=n)
