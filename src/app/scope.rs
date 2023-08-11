@@ -1,9 +1,11 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 use egui::{emath, epaint, pos2, vec2, Color32, Frame, Pos2, Rect, Stroke};
 
-pub fn show_scope(ctx: &egui::Context, bpm: Arc<Mutex<u32>>) {
+pub fn show_scope(ctx: &egui::Context, bpm: Arc<Mutex<u32>>, is_playing: Arc<AtomicBool>) {
     let bpm_clone = bpm.clone();
+    let is_playing_clone = is_playing.clone();
     egui::Window::new("Scope").show(ctx, |ui| {
         let color = if ui.visuals().dark_mode {
             Color32::from_additive_luminance(196)
@@ -26,8 +28,11 @@ pub fn show_scope(ctx: &egui::Context, bpm: Arc<Mutex<u32>>) {
             for &mode in &[2, 3, 5] {
                 let mode = mode as f64;
                 let n = 360;
-                let speed = f64::from(*bpm_clone.lock().unwrap()) / 60.0;
-                // how to i turn bpm_clone into f64?
+                let speed = if is_playing_clone.load(Ordering::SeqCst) {
+                    f64::from(*bpm_clone.lock().unwrap()) / 60.0
+                } else {
+                    0.0
+                };
 
                 let points: Vec<Pos2> = (0..=n)
                     .map(|i| {

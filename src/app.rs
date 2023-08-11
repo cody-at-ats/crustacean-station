@@ -153,7 +153,7 @@ impl eframe::App for CrustaceanStationApp {
         // loads the central panel that contains all the background UI
         show_central_panel(ctx, &logo_image.as_ref().unwrap());
 
-        show_scope(ctx, bpm.clone());
+        show_scope(ctx, bpm.clone(), is_playing.clone());
 
         sample_buttons::show_sample_buttons(ctx);
         let mut play_clicked = false;
