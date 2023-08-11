@@ -10,10 +10,10 @@ use std::time::Duration;
 use wasm_bindgen_futures::spawn_local;
 use wasm_timer::Delay;
 
+use super::{drum_sequencer, DrumSequencer};
+use crate::app::drum_sequencer::ACTIVE_STEP;
 use crate::app::sample_import::play_wav_from_base64_string;
 use crate::{app::drum_sequencer::DrumSegment, play_wav_from_assets};
-
-use super::{drum_sequencer, DrumSequencer};
 
 pub fn run_drum_segment(drum_segment: &DrumSegment) {
     play_wav_from_assets!(play_bass_drum, "../../assets/Bass-Drum-2.wav");
@@ -73,7 +73,11 @@ pub fn start_looping_sequence(
                 sequence_copy = vec![];
             }
 
+            let mut count = 0;
             for segment in sequence_copy.iter() {
+                DrumSequencer::SetActiveStep(count);
+                info!("Active step: {}", count);
+                count += 1;
                 spawn_local({
                     let segment = segment.clone();
                     async move {

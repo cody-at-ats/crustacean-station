@@ -1,5 +1,7 @@
 use core::panic;
 
+use log::info;
+
 #[derive(Clone)]
 pub struct DrumSequencer {
     pub segments: Vec<DrumSegment>,
@@ -17,6 +19,8 @@ pub struct DrumSegment {
     pub ride: bool,
 }
 
+pub static mut ACTIVE_STEP: usize = 0;
+
 impl Default for DrumSequencer {
     fn default() -> Self {
         Self {
@@ -29,6 +33,14 @@ impl Default for DrumSequencer {
 impl DrumSequencer {
     pub fn new() -> Self {
         Default::default()
+    }
+
+    pub fn SetActiveStep(step: usize) {
+        unsafe {
+            ACTIVE_STEP = step;
+
+            info!("Active step: {}", ACTIVE_STEP);
+        }
     }
 
     pub fn get_slice(&mut self, iteration: usize) -> &DrumSegment {
@@ -46,7 +58,10 @@ impl DrumSequencer {
             active_segment,
         } = self;
 
-        let active_index: usize = active_segment.clone();
+        let mut active_index: usize = 0;
+        unsafe {
+            active_index = ACTIVE_STEP.clone();
+        }
 
         const BEATS: u32 = 4;
         const BARS: u32 = 4;
