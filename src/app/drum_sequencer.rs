@@ -41,6 +41,10 @@ impl DrumSequencer {
         }
     }
 
+    pub fn GetActiveStep() -> usize {
+        unsafe { ACTIVE_STEP }
+    }
+
     pub fn get_slice(&mut self, iteration: usize) -> &DrumSegment {
         if iteration < self.segments.len() {
             self.active_segment = iteration;

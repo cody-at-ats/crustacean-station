@@ -3,7 +3,7 @@ use futures::executor::block_on;
 
 use futures::Future;
 use log::info;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
 use std::time::Duration;
@@ -55,6 +55,7 @@ pub fn start_looping_sequence(
     sequence: &mut Arc<Mutex<Vec<DrumSegment>>>,
     sequence_running: Arc<AtomicBool>,
     bpm: Arc<Mutex<u32>>,
+    active_step: Arc<Mutex<usize>>,
 ) -> () {
     let sequence_clone = sequence.clone();
     let bpm_clone = bpm.clone();
@@ -76,7 +77,13 @@ pub fn start_looping_sequence(
             let mut count = 0;
             for segment in sequence_copy.iter() {
                 DrumSequencer::SetActiveStep(count);
+
+                if let Ok(mut active_step) = active_step.try_lock() {
+                    *active_step = count.clone();
+                };
+
                 count += 1;
+
                 spawn_local({
                     let segment = segment.clone();
                     async move {

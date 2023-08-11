@@ -52,6 +52,8 @@ pub struct CrustaceanStationApp {
     last_update: Instant,
 
     bpm: Arc<Mutex<u32>>,
+
+    active_step: Arc<Mutex<usize>>,
 }
 
 impl Default for CrustaceanStationApp {
@@ -67,6 +69,7 @@ impl Default for CrustaceanStationApp {
             sequence_running: Arc::new(AtomicBool::new(false)),
             last_update: Instant::now(),
             bpm: Arc::new(Mutex::new(110)),
+            active_step: Arc::new(Mutex::new(0)),
         }
     }
 }
@@ -106,6 +109,7 @@ impl eframe::App for CrustaceanStationApp {
             sequence_running,
             last_update,
             bpm,
+            active_step,
         } = self;
 
         egui::Window::new("Drum Sequencer").show(ctx, |ui| DrumSequencer::draw(drum_sequencer, ui));
@@ -118,7 +122,7 @@ impl eframe::App for CrustaceanStationApp {
             }
         }
 
-        // loads the central panel that contains all the backgroung UI
+        // loads the central panel that contains all the background UI
         show_central_panel(ctx);
 
         let mut play_clicked = false;
@@ -155,6 +159,7 @@ impl eframe::App for CrustaceanStationApp {
                     drum_segments,
                     sequence_running_clone,
                     bpm.clone(),
+                    active_step.clone(),
                 );
             }
 
