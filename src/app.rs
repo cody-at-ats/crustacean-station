@@ -133,10 +133,6 @@ impl eframe::App for CrustaceanStationApp {
                 stop_clicked = true;
             }
 
-            // if let Ok(mut bpm) = bpm.try_lock() {
-            //     *bpm = 110;
-            // }
-
             if let Ok(mut bpm) = bpm.try_lock() {
                 ui.add(
                     Slider::new(&mut *bpm, 40..=500)
