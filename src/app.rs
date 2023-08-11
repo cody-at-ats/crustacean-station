@@ -18,10 +18,11 @@ pub use drum_sequencer::DrumSequencer;
 mod central_panel;
 use central_panel::show_central_panel;
 
+mod scope;
 mod top_bar;
 
-use self::drum_sequencer::DrumSegment;
 use self::sequence_looper::start_looping_sequence;
+use self::{drum_sequencer::DrumSegment, scope::show_scope};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -150,6 +151,8 @@ impl eframe::App for CrustaceanStationApp {
 
         // loads the central panel that contains all the background UI
         show_central_panel(ctx, &logo_image.as_ref().unwrap());
+
+        show_scope(ctx, bpm.clone());
 
         let mut play_clicked = false;
         let mut stop_clicked = false;
