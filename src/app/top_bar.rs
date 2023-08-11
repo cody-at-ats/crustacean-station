@@ -3,7 +3,7 @@ fn bar_contents(ui: &mut egui::Ui) {
 
     ui.separator();
 
-    ui.heading("Welcome to Crustacean STATION!");
+    ui.heading("Welcome to Crustacean STATION! 📻");
 
     ui.separator();
 

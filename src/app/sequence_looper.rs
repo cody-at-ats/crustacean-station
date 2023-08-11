@@ -67,10 +67,10 @@ pub fn start_looping_sequence(
                 sequence_copy = vec![];
             }
 
-            let mut count = 0;
+            // let mut count = 0;
             for segment in sequence_copy.iter() {
-                DrumSequencer::set_active_step(count);
-                count += 1;
+                // DrumSequencer::set_active_step(count);
+                // count += 1;
 
                 spawn_local({
                     let segment = segment.clone();
