@@ -3,16 +3,11 @@ mod sample_import;
 mod sequence_looper;
 
 use egui::Slider;
-use futures::executor::block_on;
 
-use futures::StreamExt;
-use log::info;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use wasm_timer::Instant;
-
-use image::GenericImageView;
 
 pub use drum_sequencer::DrumSequencer;
 
@@ -57,8 +52,6 @@ pub struct CrustaceanStationApp {
 
     #[serde(skip)]
     logo_image: Option<egui::TextureHandle>,
-
-    active_step: Arc<Mutex<usize>>,
 }
 
 impl Default for CrustaceanStationApp {
@@ -75,7 +68,6 @@ impl Default for CrustaceanStationApp {
             last_update: Instant::now(),
             bpm: Arc::new(Mutex::new(110)),
             logo_image: None,
-            active_step: Arc::new(Mutex::new(0)),
         }
     }
 }
@@ -135,7 +127,6 @@ impl eframe::App for CrustaceanStationApp {
             last_update,
             bpm,
             logo_image,
-            active_step,
         } = self;
 
         egui::Window::new("Drum Sequencer").show(ctx, |ui| DrumSequencer::draw(drum_sequencer, ui));
@@ -155,13 +146,15 @@ impl eframe::App for CrustaceanStationApp {
         let mut stop_clicked = false;
 
         egui::Window::new("Control Buttons").show(ctx, |ui| {
-            if ui.button("PLAY LOOP!").clicked() {
-                play_clicked = true;
-            }
+            ui.horizontal(|ui| {
+                if ui.button("▶").clicked() {
+                    play_clicked = true;
+                }
 
-            if ui.button("STOP LOOP").clicked() {
-                stop_clicked = true;
-            }
+                if ui.button("⏹").clicked() {
+                    stop_clicked = true;
+                }
+            });
 
             if let Ok(mut bpm) = bpm.try_lock() {
                 ui.add(
@@ -185,7 +178,6 @@ impl eframe::App for CrustaceanStationApp {
                     drum_segments,
                     sequence_running_clone,
                     bpm.clone(),
-                    active_step.clone(),
                 );
             }
 

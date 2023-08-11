@@ -1,16 +1,12 @@
-use core::panic;
-
-use log::info;
+pub static mut ACTIVE_STEP: usize = 0;
 
 #[derive(Clone)]
 pub struct DrumSequencer {
     pub segments: Vec<DrumSegment>,
-    active_segment: usize,
 }
 
 #[derive(Copy, Clone)]
 pub struct DrumSegment {
-    beat: u32,
     pub kick: bool,
     pub snare: bool,
     pub hi_hat_closed: bool,
@@ -19,14 +15,9 @@ pub struct DrumSegment {
     pub ride: bool,
 }
 
-pub static mut ACTIVE_STEP: usize = 0;
-
 impl Default for DrumSequencer {
     fn default() -> Self {
-        Self {
-            segments: vec![],
-            active_segment: 0,
-        }
+        Self { segments: vec![] }
     }
 }
 
@@ -35,32 +26,16 @@ impl DrumSequencer {
         Default::default()
     }
 
-    pub fn SetActiveStep(step: usize) {
+    pub fn set_active_step(step: usize) {
         unsafe {
             ACTIVE_STEP = step;
         }
     }
 
-    pub fn GetActiveStep() -> usize {
-        unsafe { ACTIVE_STEP }
-    }
-
-    pub fn get_slice(&mut self, iteration: usize) -> &DrumSegment {
-        if iteration < self.segments.len() {
-            self.active_segment = iteration;
-            &self.segments[iteration]
-        } else {
-            panic!("NO")
-        }
-    }
-
     pub fn draw(&mut self, ui: &mut egui::Ui) {
-        let Self {
-            segments,
-            active_segment,
-        } = self;
+        let Self { segments } = self;
 
-        let mut active_index: usize = 0;
+        let active_index: usize;
         unsafe {
             active_index = ACTIVE_STEP.clone();
         }
@@ -69,9 +44,8 @@ impl DrumSequencer {
         const BARS: u32 = 4;
 
         if segments.len() == 0 {
-            for i in 0..BEATS * BARS {
+            for _ in 0..BEATS * BARS {
                 segments.push(DrumSegment {
-                    beat: (i),
                     kick: (false),
                     snare: (false),
                     hi_hat_closed: (false),
@@ -97,7 +71,7 @@ impl DrumSequencer {
                     for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].kick, "");
 
-                        let text = if active_index == cnt { "<" } else { " " };
+                        let text = if active_index == cnt { "⇜" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -113,7 +87,7 @@ impl DrumSequencer {
                     for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].snare, "");
 
-                        let text = if active_index == cnt { "<" } else { " " };
+                        let text = if active_index == cnt { "⇜" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -131,7 +105,7 @@ impl DrumSequencer {
                     for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].hi_hat_closed, "");
 
-                        let text = if active_index == cnt { "<" } else { " " };
+                        let text = if active_index == cnt { "⇜" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -149,7 +123,7 @@ impl DrumSequencer {
                     for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].hi_hat_open, "");
 
-                        let text = if active_index == cnt { "<" } else { " " };
+                        let text = if active_index == cnt { "⇜" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -167,26 +141,13 @@ impl DrumSequencer {
                     for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].floor_tom, "");
 
-                        let text = if active_index == cnt { "<" } else { " " };
+                        let text = if active_index == cnt { "⇜" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
                     }
                     ui.label("|");
                 }
-            });
-
-            ui.horizontal(|ui| {
-                if ui.button("<").clicked() {
-                    if active_index > 0 {
-                        *active_segment -= 1;
-                    }
-                }
-                if ui.button(">").clicked() {
-                    if active_index < segments.len() - 1 {
-                        *active_segment += 1;
-                    }
-                };
             });
         });
     }
