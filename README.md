@@ -1,4 +1,4 @@
-Rust / toolchain setup
+# Rust / toolchain setup
 
 Install RustUp-Init
 https://www.rust-lang.org/tools/install
