@@ -76,7 +76,6 @@ pub fn start_looping_sequence(
             let mut count = 0;
             for segment in sequence_copy.iter() {
                 DrumSequencer::SetActiveStep(count);
-                info!("Active step: {}", count);
                 count += 1;
                 spawn_local({
                     let segment = segment.clone();

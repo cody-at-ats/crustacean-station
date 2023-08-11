@@ -38,8 +38,6 @@ impl DrumSequencer {
     pub fn SetActiveStep(step: usize) {
         unsafe {
             ACTIVE_STEP = step;
-
-            info!("Active step: {}", ACTIVE_STEP);
         }
     }
 
@@ -95,7 +93,7 @@ impl DrumSequencer {
                     for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].kick, "");
 
-                        let text = if *active_segment == cnt { "<" } else { " " };
+                        let text = if active_index == cnt { "<" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -111,7 +109,7 @@ impl DrumSequencer {
                     for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].snare, "");
 
-                        let text = if *active_segment == cnt { "<" } else { " " };
+                        let text = if active_index == cnt { "<" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -129,7 +127,7 @@ impl DrumSequencer {
                     for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].hi_hat_closed, "");
 
-                        let text = if *active_segment == cnt { "<" } else { " " };
+                        let text = if active_index == cnt { "<" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -147,7 +145,7 @@ impl DrumSequencer {
                     for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].hi_hat_open, "");
 
-                        let text = if *active_segment == cnt { "<" } else { " " };
+                        let text = if active_index == cnt { "<" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
@@ -165,7 +163,7 @@ impl DrumSequencer {
                     for _ in 0..BEATS {
                         ui.checkbox(&mut segments[cnt].floor_tom, "");
 
-                        let text = if *active_segment == cnt { "<" } else { " " };
+                        let text = if active_index == cnt { "<" } else { " " };
                         ui.label(egui::RichText::new(text).text_style(egui::TextStyle::Monospace));
 
                         cnt += 1;
