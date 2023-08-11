@@ -4,15 +4,21 @@ mod sequence_looper;
 
 use egui::Slider;
 
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::{
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
+    },
+    time::Duration,
+};
 use wasm_timer::Instant;
 
 pub use drum_sequencer::DrumSequencer;
 
 mod central_panel;
 use central_panel::show_central_panel;
+
+mod top_bar;
 
 use self::drum_sequencer::DrumSegment;
 use self::sequence_looper::start_looping_sequence;
@@ -138,6 +144,9 @@ impl eframe::App for CrustaceanStationApp {
                 *last_update = Instant::now();
             }
         }
+
+        // load the top bar with the day/night mode switch
+        top_bar::show_top_bar(ctx);
 
         // loads the central panel that contains all the background UI
         show_central_panel(ctx, &logo_image.as_ref().unwrap());

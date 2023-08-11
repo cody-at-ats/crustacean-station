@@ -15,9 +15,6 @@ pub fn show_central_panel(ctx: &egui::Context, logo: &egui::TextureHandle) {
         // show our logo
         ui.image(logo, logo.size_vec2());
 
-        ui.hyperlink("https://media.tenor.com/oB3o62J9hjkAAAAC/dancing-ferris.gif");
-        egui::warn_if_debug_build(ui);
-
         play_wav_from_assets!(play_bass_drum, "../../assets/Bass-Drum-2.wav");
         play_wav_from_assets!(play_snare_drum, "../../assets/Hip-Hop-Snare-1.wav");
         play_wav_from_assets!(play_closed_hat, "../../assets/Closed-Hi-Hat-1.wav");
