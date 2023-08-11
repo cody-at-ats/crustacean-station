@@ -51,7 +51,7 @@ pub struct CrustaceanStationApp {
     #[serde(skip)]
     last_update: Instant,
 
-    bpm: u32,
+    bpm: Arc<Mutex<u32>>,
 }
 
 impl Default for CrustaceanStationApp {
@@ -66,7 +66,7 @@ impl Default for CrustaceanStationApp {
             should_stop: Arc::new(AtomicBool::new(false)),
             sequence_running: Arc::new(AtomicBool::new(false)),
             last_update: Instant::now(),
-            bpm: 100,
+            bpm: Arc::new(Mutex::new(110)),
         }
     }
 }
@@ -133,16 +133,22 @@ impl eframe::App for CrustaceanStationApp {
                 stop_clicked = true;
             }
 
-            ui.add(
-                Slider::new(bpm, 40..=500)
-                    .logarithmic(false)
-                    .clamp_to_range(true)
-                    .smart_aim(true)
-                    .orientation(egui::SliderOrientation::Horizontal)
-                    .text("BPM Control")
-                    .step_by(1.0)
-                    .trailing_fill(false),
-            );
+            // if let Ok(mut bpm) = bpm.try_lock() {
+            //     *bpm = 110;
+            // }
+
+            if let Ok(mut bpm) = bpm.try_lock() {
+                ui.add(
+                    Slider::new(&mut *bpm, 40..=500)
+                        .logarithmic(false)
+                        .clamp_to_range(true)
+                        .smart_aim(true)
+                        .orientation(egui::SliderOrientation::Horizontal)
+                        .text("BPM Control")
+                        .step_by(1.0)
+                        .trailing_fill(false),
+                );
+            }
 
             if play_clicked && !sequence_running.load(Ordering::SeqCst) {
                 is_playing.store(true, Ordering::SeqCst);
@@ -152,7 +158,7 @@ impl eframe::App for CrustaceanStationApp {
                     should_stop.clone(),
                     drum_segments,
                     sequence_running_clone,
-                    bpm,
+                    bpm.clone(),
                 );
             }
 
